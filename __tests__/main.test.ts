@@ -8,12 +8,11 @@
 
 import * as core from '@actions/core'
 import * as main from '../src/main'
+import * as fs from 'fs'
+import * as path from 'path'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
-
-// Other utilities
-const timeRegex = /^\d{2}:\d{2}:\d{2}/
 
 // Mock the GitHub Actions core library
 let debugMock: jest.SpiedFunction<typeof core.debug>
@@ -33,12 +32,17 @@ describe('action', () => {
     setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
   })
 
-  it('sets the time output', async () => {
+  it('processes the SARIF file and returns a stubbed sarif-id', async () => {
+    // Create a mock SARIF file
+    const mockSarifContent = JSON.stringify({ version: '2.1.0', runs: [] })
+    const mockSarifPath = path.join(__dirname, 'mock-sarif.sarif')
+    fs.writeFileSync(mockSarifPath, mockSarifContent)
+
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation(name => {
       switch (name) {
-        case 'milliseconds':
-          return '500'
+        case 'sarif_file':
+          return mockSarifPath
         default:
           return ''
       }
@@ -48,29 +52,22 @@ describe('action', () => {
     expect(runMock).toHaveReturned()
 
     // Verify that all of the core library functions were called correctly
-    expect(debugMock).toHaveBeenNthCalledWith(1, 'Waiting 500 milliseconds ...')
-    expect(debugMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringMatching(timeRegex)
+    expect(debugMock).toHaveBeenCalledWith(
+      `Processing SARIF file ${mockSarifPath}`
     )
-    expect(debugMock).toHaveBeenNthCalledWith(
-      3,
-      expect.stringMatching(timeRegex)
-    )
-    expect(setOutputMock).toHaveBeenNthCalledWith(
-      1,
-      'time',
-      expect.stringMatching(timeRegex)
-    )
+    expect(setOutputMock).toHaveBeenCalledWith('sarif-id', '123')
     expect(errorMock).not.toHaveBeenCalled()
+
+    // Clean up the mock SARIF file
+    fs.unlinkSync(mockSarifPath)
   })
 
-  it('sets a failed status', async () => {
+  it('sets a failed status when SARIF file is not found', async () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation(name => {
       switch (name) {
-        case 'milliseconds':
-          return 'this is not a number'
+        case 'sarif_file':
+          return 'non-existent-file.sarif'
         default:
           return ''
       }
@@ -80,9 +77,8 @@ describe('action', () => {
     expect(runMock).toHaveReturned()
 
     // Verify that all of the core library functions were called correctly
-    expect(setFailedMock).toHaveBeenNthCalledWith(
-      1,
-      'milliseconds not a number'
+    expect(setFailedMock).toHaveBeenCalledWith(
+      expect.stringContaining('SARIF file is not valid')
     )
     expect(errorMock).not.toHaveBeenCalled()
   })
