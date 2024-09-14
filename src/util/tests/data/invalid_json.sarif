@@ -1,0 +1,11 @@
+{
+    "runs": [
+        {
+            "tool": {
+                "driver": {
+                    name: "semgrep"
+                }
+            }
+        }
+    ]
+}
