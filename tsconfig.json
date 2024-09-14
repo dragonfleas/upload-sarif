@@ -11,7 +11,9 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
     "strict": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "newLine": "lf"
   },
