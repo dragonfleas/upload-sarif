@@ -57,7 +57,7 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          sarif_file: ./examples/semgrep.sarif
 
       - name: Print Output
         id: output
