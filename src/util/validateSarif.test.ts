@@ -5,8 +5,8 @@ import * as core from '@actions/core'
 jest.mock('@actions/core')
 
 describe('validateSarif', () => {
-  const mockCoreError = jest.spyOn(core, 'error')
   const mockCoreInfo = jest.spyOn(core, 'info')
+  const mockCoreDebug = jest.spyOn(core, 'debug')
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -20,23 +20,44 @@ describe('validateSarif', () => {
   })
 
   it('should return false for an invalid SARIF file', async () => {
-    const invalidFilePath = path.join(__dirname, 'tests', 'data', 'invalid.sarif')
+    const invalidFilePath = path.join(
+      __dirname,
+      'tests',
+      'data',
+      'invalid.sarif'
+    )
     const result = await validateSarif(invalidFilePath)
     expect(result).toBe(false)
-    expect(mockCoreError).toHaveBeenCalledWith(expect.stringContaining('SARIF validation failed'))
+    expect(mockCoreDebug).toHaveBeenCalledWith(
+      expect.stringContaining('SARIF validation failed')
+    )
   })
 
   it('should return false for a file with invalid JSON', async () => {
-    const invalidJsonPath = path.join(__dirname, 'tests', 'data', 'invalid_json.sarif')
+    const invalidJsonPath = path.join(
+      __dirname,
+      'tests',
+      'data',
+      'invalid_json.sarif'
+    )
     const result = await validateSarif(invalidJsonPath)
     expect(result).toBe(false)
-    expect(mockCoreError).toHaveBeenCalledWith(expect.stringContaining('Error validating SARIF file'))
+    expect(mockCoreDebug).toHaveBeenCalledWith(
+      expect.stringContaining('Error validating SARIF file')
+    )
   })
 
   it('should return false for a non-existent file', async () => {
-    const nonExistentPath = path.join(__dirname, 'tests', 'data', 'non_existent.sarif')
+    const nonExistentPath = path.join(
+      __dirname,
+      'tests',
+      'data',
+      'non_existent.sarif'
+    )
     const result = await validateSarif(nonExistentPath)
     expect(result).toBe(false)
-    expect(mockCoreError).toHaveBeenCalledWith(expect.stringContaining('Error validating SARIF file'))
+    expect(mockCoreDebug).toHaveBeenCalledWith(
+      expect.stringContaining('Error validating SARIF file')
+    )
   })
 })

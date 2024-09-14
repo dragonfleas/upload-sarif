@@ -8,12 +8,16 @@ import { validateSarif } from './util/validateSarif'
 export async function run(): Promise<void> {
   try {
     const filename: string = core.getInput('sarif_file')
-    await validateSarif(filename)
+    core.debug(`Processing SARIF file ${filename}`)
+    const isValid = await validateSarif(filename)
+
+    if (!isValid) {
+      throw new Error('SARIF file is not valid')
+    }
 
     // Set outputs for other workflow steps to use
     core.setOutput('sarif-id', '123')
   } catch (error) {
-    // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }

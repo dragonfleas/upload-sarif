@@ -16,7 +16,7 @@ export async function validateSarif(filePath: string): Promise<boolean> {
     const validate = ajv.compile<typeof sarifSchema>(sarifSchema)
 
     if (!validate(sarifJson)) {
-      core.error(`SARIF validation failed: ${JSON.stringify(validate.errors)}`)
+      core.debug(`SARIF validation failed: ${JSON.stringify(validate.errors)}`)
       return false
     } else {
       core.info('SARIF file is valid')
@@ -24,9 +24,10 @@ export async function validateSarif(filePath: string): Promise<boolean> {
     }
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Error validating SARIF file: ${error.message}`)
+      core.debug(`Error validating SARIF file: ${error.message}`)
+      return false
     }
-    core.error(`Error validating SARIF file: ${String(error)}`)
+    core.debug(`Error validating SARIF file: ${String(error)}`)
     return false
   }
 }

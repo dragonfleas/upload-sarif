@@ -1,21 +1,20 @@
-import pluginJs from "@eslint/js";
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import pluginJs from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 export default [
-  { files: ["**/*.{js,mjs,cjs,ts}"] },
+  { files: ['**/*.{js,mjs,cjs,ts}'] },
   {
-    languageOptions:
-    {
+    languageOptions: {
       globals: globals.browser,
       parserOptions: {
         project: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: import.meta.dirname
       }
     },
     plugins: {
-      "@typescript-eslint": tsPlugin
+      '@typescript-eslint': tsPlugin
     }
   },
   pluginJs.configs.recommended,
@@ -23,6 +22,15 @@ export default [
   ...tseslint.configs.stylistic,
   ...tseslint.configs.strictTypeChecked,
   {
-    ignores: ["lib/*", "dist/*", "node_modules/*", "coverage/*", ".vscode/*", ".github/linters/*", "__tests__/*", "eslint.config.mjs"],
+    ignores: [
+      'lib/*',
+      'dist/*',
+      'node_modules/*',
+      'coverage/*',
+      '.vscode/*',
+      '.github/linters/*',
+      '__tests__/*',
+      'eslint.config.mjs'
+    ]
   }
-];
+]

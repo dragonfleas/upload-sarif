@@ -10,7 +10,8 @@ branding:
 # Define your inputs here.
 inputs:
   sarif_file:
-    description: 'The SARIF file or directory of SARIF files to be uploaded to Quallio'
+    description:
+      'The SARIF file or directory of SARIF files to be uploaded to Quallio'
     required: false
     default: '../results'
   # api_key:

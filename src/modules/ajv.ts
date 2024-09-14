@@ -1,5 +1,5 @@
 import Ajv from 'ajv'
-import addFormats from "ajv-formats"
+import addFormats from 'ajv-formats'
 
 const ajv = new Ajv({
   unicodeRegExp: false,
