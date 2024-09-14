@@ -31150,12 +31150,15 @@ const validateSarif_1 = __nccwpck_require__(3026);
 async function run() {
     try {
         const filename = core.getInput('sarif_file');
-        await (0, validateSarif_1.validateSarif)(filename);
+        core.debug(`Processing SARIF file ${filename}`);
+        const isValid = await (0, validateSarif_1.validateSarif)(filename);
+        if (!isValid) {
+            throw new Error('SARIF file is not valid');
+        }
         // Set outputs for other workflow steps to use
         core.setOutput('sarif-id', '123');
     }
     catch (error) {
-        // Fail the workflow run if an error occurs
         if (error instanceof Error)
             core.setFailed(error.message);
     }
@@ -31233,7 +31236,7 @@ async function validateSarif(filePath) {
         const sarifJson = JSON.parse(sarifContent);
         const validate = ajv_1.default.compile(sarif_schema_2_1_0_json_1.default);
         if (!validate(sarifJson)) {
-            core.error(`SARIF validation failed: ${JSON.stringify(validate.errors)}`);
+            core.debug(`SARIF validation failed: ${JSON.stringify(validate.errors)}`);
             return false;
         }
         else {
@@ -31243,9 +31246,10 @@ async function validateSarif(filePath) {
     }
     catch (error) {
         if (error instanceof Error) {
-            core.error(`Error validating SARIF file: ${error.message}`);
+            core.debug(`Error validating SARIF file: ${error.message}`);
+            return false;
         }
-        core.error(`Error validating SARIF file: ${String(error)}`);
+        core.debug(`Error validating SARIF file: ${String(error)}`);
         return false;
     }
 }
