@@ -3,25 +3,14 @@ import { validateSarif } from './util/validateSarif'
 import { sendSarif } from './util/sendSarif'
 import * as fs from 'fs'
 import type { Sarif } from './util/types'
-
-interface Env {
-  BASE_QUALLIO_ENDPOINT?: string
-}
-
+import { env } from './env'
+import { SARIF_FILE_NOT_VALID } from './errors'
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
   try {
-    const env: Env = {
-      BASE_QUALLIO_ENDPOINT: process.env.BASE_QUALLIO_ENDPOINT
-    }
-
-    if (!env.BASE_QUALLIO_ENDPOINT) {
-      throw new Error('BASE_QUALLIO_ENDPOINT is not set')
-    }
-
     const inputs = {
       sarifFile: core.getInput('sarif_file', { required: true }),
       apiKey: core.getInput('api_key', { required: true })
@@ -31,7 +20,7 @@ export async function run(): Promise<void> {
     const isValid = await validateSarif(inputs.sarifFile)
 
     if (!isValid) {
-      throw new Error('SARIF file is not valid')
+      throw new Error(SARIF_FILE_NOT_VALID)
     }
 
     const sarifContent = fs.readFileSync(inputs.sarifFile, 'utf8') as unknown as Sarif
