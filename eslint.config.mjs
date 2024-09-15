@@ -29,8 +29,10 @@ export default [
       'coverage/*',
       '.vscode/*',
       '.github/linters/*',
-      '__tests__/*',
-      'eslint.config.mjs'
+      'src/__tests__/*',
+      'eslint.config.mjs',
+      'jest.config.mjs',
+      'src/.jest/envVars.ts'
     ]
   }
 ]

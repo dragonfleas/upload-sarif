@@ -31111,6 +31111,55 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 1996:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.env = void 0;
+exports.createEnvErrorMessage = createEnvErrorMessage;
+exports.checkRequiredEnvs = checkRequiredEnvs;
+const requiredEnvs = {
+    BASE_QUALLIO_ENDPOINT: process.env.BASE_QUALLIO_ENDPOINT,
+};
+const optionalEnvs = {
+    QUALLIO_API_KEY: process.env.QUALLIO_API_KEY,
+};
+function createEnvErrorMessage(key) {
+    return `${key.toUpperCase()} is not set`;
+}
+function checkRequiredEnvs(envs) {
+    const checkedEnvs = {};
+    Object.entries(envs).forEach(([key, value]) => {
+        if (!value) {
+            const errorMessage = createEnvErrorMessage(key);
+            throw new Error(errorMessage);
+        }
+        checkedEnvs[key] = value;
+    });
+    return checkedEnvs;
+}
+exports.env = {
+    ...checkRequiredEnvs(requiredEnvs),
+    ...optionalEnvs
+};
+
+
+/***/ }),
+
+/***/ 6976:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SARIF_FILE_NOT_VALID = void 0;
+exports.SARIF_FILE_NOT_VALID = 'SARIF file is not valid';
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -31145,18 +31194,14 @@ const core = __importStar(__nccwpck_require__(2186));
 const validateSarif_1 = __nccwpck_require__(3026);
 const sendSarif_1 = __nccwpck_require__(8443);
 const fs = __importStar(__nccwpck_require__(7147));
+const env_1 = __nccwpck_require__(1996);
+const errors_1 = __nccwpck_require__(6976);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const env = {
-            BASE_QUALLIO_ENDPOINT: process.env.BASE_QUALLIO_ENDPOINT
-        };
-        if (!env.BASE_QUALLIO_ENDPOINT) {
-            throw new Error('BASE_QUALLIO_ENDPOINT is not set');
-        }
         const inputs = {
             sarifFile: core.getInput('sarif_file', { required: true }),
             apiKey: core.getInput('api_key', { required: true })
@@ -31164,11 +31209,11 @@ async function run() {
         core.debug(`Processing SARIF file ${inputs.sarifFile}`);
         const isValid = await (0, validateSarif_1.validateSarif)(inputs.sarifFile);
         if (!isValid) {
-            throw new Error('SARIF file is not valid');
+            throw new Error(errors_1.SARIF_FILE_NOT_VALID);
         }
         const sarifContent = fs.readFileSync(inputs.sarifFile, 'utf8');
         const sarifReturn = await (0, sendSarif_1.sendSarif)({
-            endpoint: env.BASE_QUALLIO_ENDPOINT,
+            endpoint: env_1.env.BASE_QUALLIO_ENDPOINT,
             sarifContent,
             apiKey: inputs.apiKey
         });
@@ -31179,10 +31224,6 @@ async function run() {
         if (error instanceof Error) {
             core.error(error.message);
             core.setFailed(error.message);
-        }
-        else {
-            core.error(String(error));
-            core.setFailed('An unknown error occurred');
         }
     }
 }
