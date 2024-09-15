@@ -31143,24 +31143,47 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const core = __importStar(__nccwpck_require__(2186));
 const validateSarif_1 = __nccwpck_require__(3026);
+const sendSarif_1 = __nccwpck_require__(8443);
+const fs = __importStar(__nccwpck_require__(7147));
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const filename = core.getInput('sarif_file');
-        core.debug(`Processing SARIF file ${filename}`);
-        const isValid = await (0, validateSarif_1.validateSarif)(filename);
+        const env = {
+            BASE_QUALLIO_ENDPOINT: process.env.BASE_QUALLIO_ENDPOINT
+        };
+        if (!env.BASE_QUALLIO_ENDPOINT) {
+            throw new Error('BASE_QUALLIO_ENDPOINT is not set');
+        }
+        const inputs = {
+            sarifFile: core.getInput('sarif_file', { required: true }),
+            apiKey: core.getInput('api_key', { required: true })
+        };
+        core.debug(`Processing SARIF file ${inputs.sarifFile}`);
+        const isValid = await (0, validateSarif_1.validateSarif)(inputs.sarifFile);
         if (!isValid) {
             throw new Error('SARIF file is not valid');
         }
+        const sarifContent = fs.readFileSync(inputs.sarifFile, 'utf8');
+        const sarifReturn = await (0, sendSarif_1.sendSarif)({
+            endpoint: env.BASE_QUALLIO_ENDPOINT,
+            sarifContent,
+            apiKey: inputs.apiKey
+        });
         // Set outputs for other workflow steps to use
-        core.setOutput('sarif-id', '123');
+        core.setOutput('sarif-id', sarifReturn.id);
     }
     catch (error) {
-        if (error instanceof Error)
+        if (error instanceof Error) {
+            core.error(error.message);
             core.setFailed(error.message);
+        }
+        else {
+            core.error(String(error));
+            core.setFailed('An unknown error occurred');
+        }
     }
 }
 
@@ -31184,6 +31207,83 @@ const ajv = new ajv_1.default({
 });
 (0, ajv_formats_1.default)(ajv);
 exports["default"] = ajv;
+
+
+/***/ }),
+
+/***/ 8443:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sendSarif = sendSarif;
+const core = __importStar(__nccwpck_require__(2186));
+const createHeaders = (apiKey) => {
+    return new Headers({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+    });
+};
+const method = 'POST';
+/**
+ * Sends a SARIF file to a specified endpoint.
+ *
+ * @param {Object} options - The options for sending the SARIF file.
+ * @param {string} options.endpoint - The URL endpoint to send the SARIF file to.
+ * @param {Sarif} options.sarifContent - The content of the SARIF file as a string.
+ * @param {string} options.apiKey - The API key for authentication.
+ * @returns {Promise<void>} A promise that resolves when the SARIF file is successfully sent.
+ * @throws {Error} If there's an error sending the SARIF file.
+ */
+async function sendSarif({ endpoint, sarifContent, apiKey }) {
+    try {
+        const response = await fetch(endpoint, {
+            method,
+            headers: createHeaders(apiKey),
+            body: JSON.stringify({ sarif: sarifContent })
+        });
+        if (!response.ok) {
+            core.debug(JSON.stringify(await response.json()));
+            core.setFailed(`Failed to submit SARIF file: ${response.statusText}`);
+        }
+        const res = await response.json().catch(() => {
+            throw new Error('Failed to parse response');
+        });
+        if (res.error) {
+            core.setFailed(res.error);
+            throw new Error(res.error);
+        }
+        return res;
+    }
+    catch (error) {
+        core.setFailed(`Error sending SARIF file: ${String(error)}`);
+        throw error;
+    }
+}
 
 
 /***/ }),
