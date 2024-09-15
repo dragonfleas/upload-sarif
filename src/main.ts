@@ -48,9 +48,6 @@ export async function run(): Promise<void> {
     if (error instanceof Error) {
       core.error(error.message)
       core.setFailed(error.message)
-    } else {
-      core.error(String(error))
-      core.setFailed('An unknown error occurred')
     }
   }
 }
