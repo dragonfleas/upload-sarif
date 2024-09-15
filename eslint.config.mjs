@@ -30,7 +30,9 @@ export default [
       '.vscode/*',
       '.github/linters/*',
       '__tests__/*',
-      'eslint.config.mjs'
+      'eslint.config.mjs',
+      'jest.config.mjs',
+      'src/.jest/envVars.ts'
     ]
   }
 ]
